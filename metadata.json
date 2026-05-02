@@ -1,0 +1,5 @@
+{
+  "name": "Lafiya Triage",
+  "description": "A decision-support triage tool for frontline health workers.",
+  "requestFramePermissions": ["microphone", "geolocation"]
+}

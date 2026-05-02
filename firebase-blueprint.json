@@ -1,0 +1,60 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "A user of the Lafiya system (health worker or parent).",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "Firebase Auth UID" },
+        "name": { "type": "string", "description": "Full name of the user" },
+        "role": { "type": "string", "enum": ["health_worker", "parent", "admin"], "description": "Role of the user" },
+        "location": { "type": "string", "description": "Village or area name" },
+        "state": { "type": "string", "description": "State name" },
+        "lga": { "type": "string", "description": "Local Government Area name" },
+        "ward": { "type": "string", "description": "Ward name" },
+        "createdAt": { "type": "timestamp", "description": "When the user was created" }
+      },
+      "required": ["uid", "name", "role", "location", "state", "lga", "ward", "createdAt"]
+    },
+    "Case": {
+      "title": "Case",
+      "description": "A triage case logged by a user.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "description": "ID of the user who logged the case" },
+        "patientAgeMonths": { "type": "number", "description": "Age of the patient in months" },
+        "symptoms": { "type": "string", "description": "Reported symptoms" },
+        "riskLevel": { "type": "string", "enum": ["Low", "Medium", "High"], "description": "Assessed risk level" },
+        "likelyIllness": { "type": "string", "description": "Likely condition based on triage" },
+        "guidance": { "type": "string", "description": "Actionable steps provided" },
+        "timestamp": { "type": "timestamp", "description": "When the case was logged" }
+      },
+      "required": ["userId", "patientAgeMonths", "symptoms", "riskLevel", "likelyIllness", "guidance", "timestamp"]
+    },
+    "Alert": {
+      "title": "Alert",
+      "description": "An early warning alert broadcasted to users.",
+      "type": "object",
+      "properties": {
+        "message": { "type": "string", "description": "Alert message content" },
+        "createdBy": { "type": "string", "description": "ID of the admin/health worker who created the alert" },
+        "timestamp": { "type": "timestamp", "description": "When the alert was created" }
+      },
+      "required": ["message", "createdBy", "timestamp"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/User" },
+      "description": "Stores user profiles."
+    },
+    "/cases/{caseId}": {
+      "schema": { "$ref": "#/entities/Case" },
+      "description": "Stores logged triage cases."
+    },
+    "/alerts/{alertId}": {
+      "schema": { "$ref": "#/entities/Alert" },
+      "description": "Stores broadcasted alerts."
+    }
+  }
+}
