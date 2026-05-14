@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { collection, query, where, orderBy, getDocs, limit } from 'firebase/firestore';
-import { db } from '../firebase';
+import { db, handleFirestoreError, OperationType } from '../firebase';
 import { useAuth } from '../context/AuthContext';
 import { format } from 'date-fns';
 import { AlertTriangle, CheckCircle2, Info, History } from 'lucide-react';
@@ -28,7 +28,7 @@ export default function CaseHistory() {
         }));
         setCases(fetchedCases);
       } catch (error) {
-        console.error("Error fetching cases:", error);
+        handleFirestoreError(error, OperationType.GET, 'cases');
       } finally {
         setLoading(false);
       }

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { collection, query, orderBy, getDocs, addDoc, serverTimestamp, limit } from 'firebase/firestore';
-import { db } from '../firebase';
+import { db, handleFirestoreError, OperationType } from '../firebase';
 import { useAuth } from '../context/AuthContext';
 import { format } from 'date-fns';
 import { Bell, Plus, AlertCircle } from 'lucide-react';
@@ -27,7 +27,7 @@ export default function Alerts() {
       }));
       setAlerts(fetchedAlerts);
     } catch (error) {
-      console.error("Error fetching alerts:", error);
+      handleFirestoreError(error, OperationType.GET, 'alerts');
     } finally {
       setLoading(false);
     }
@@ -51,8 +51,14 @@ export default function Alerts() {
       setIsCreating(false);
       fetchAlerts();
     } catch (error) {
-      console.error("Error creating alert:", error);
-      alert("Failed to create alert. You might not have permission.");
+      try {
+        handleFirestoreError(error, OperationType.CREATE, 'alerts');
+      } catch (e) {
+         // handleFirestoreError throws an error, we catch it here to show alert to user 
+         // since it's a synchronous process that was normally alerting
+         console.error("Error creating alert:", e);
+         alert("Failed to create alert. You might not have permission.");
+      }
     }
   };
 

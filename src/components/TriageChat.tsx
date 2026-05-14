@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Send, AlertTriangle, CheckCircle2, Info, MapPin, Activity, Globe, Mic, MicOff } from 'lucide-react';
 import { performTriage, findLocalClinics, TriageResult, generateSpeech } from '../services/geminiService';
-import { db } from '../firebase';
+import { db, handleFirestoreError, OperationType } from '../firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
@@ -266,15 +266,19 @@ export default function TriageChat() {
 
         // Log case to Firestore with the used location
         if (user && currentTriage) {
-          await addDoc(collection(db, 'cases'), {
-            userId: user.uid,
-            patientAgeMonths: parseInt(age) || 24, // simplified
-            symptoms: `Symptoms: ${symptoms}. Duration: ${duration}. Location checked: ${locationInput}`,
-            riskLevel: currentTriage.riskLevel,
-            likelyIllness: currentTriage.likelyIllness,
-            guidance: currentTriage.guidance,
-            timestamp: serverTimestamp()
-          });
+          try {
+            await addDoc(collection(db, 'cases'), {
+              userId: user.uid,
+              patientAgeMonths: parseInt(age) || 24, // simplified
+              symptoms: `Symptoms: ${symptoms}. Duration: ${duration}. Location checked: ${locationInput}`,
+              riskLevel: currentTriage.riskLevel,
+              likelyIllness: currentTriage.likelyIllness,
+              guidance: currentTriage.guidance,
+              timestamp: serverTimestamp()
+            });
+          } catch (e) {
+            handleFirestoreError(e, OperationType.CREATE, 'cases');
+          }
         }
 
         setMessages(prev => [
@@ -361,15 +365,19 @@ export default function TriageChat() {
         } else {
            // Skip clinics for Low/Medium risk, finish triage logs
            if (user) {
-            await addDoc(collection(db, 'cases'), {
-              userId: user.uid,
-              patientAgeMonths: ageMonths,
-              symptoms: fullContext,
-              riskLevel: triage.riskLevel,
-              likelyIllness: triage.likelyIllness,
-              guidance: triage.guidance,
-              timestamp: serverTimestamp()
-            });
+            try {
+              await addDoc(collection(db, 'cases'), {
+                userId: user.uid,
+                patientAgeMonths: ageMonths,
+                symptoms: fullContext,
+                riskLevel: triage.riskLevel,
+                likelyIllness: triage.likelyIllness,
+                guidance: triage.guidance,
+                timestamp: serverTimestamp()
+              });
+            } catch (e) {
+              handleFirestoreError(e, OperationType.CREATE, 'cases');
+            }
           }
 
           setMessages(prev => [
